@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница сервера</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #FFC673;
+        }
+
+        header {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #FFAC40;
+            padding: 10px 20px;
+
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #FFB140;
+            height: 70px;
+            max-height: 70px;
+        }
+
+            header .logo {
+                display: grid;
+                grid-template-columns: 50%;
+                grid-template-rows: 50%;
+                justify-content: center;
+                align-items: center;
+            }
+
+            header .logo a {
+                grid-column-start: 1;
+                grid-row-start: 1;
+                grid-column-end: 3;
+                grid-row-end: 3;
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 35px;
+                color: #A66200;
+
+            }
+
+            header .back-button{
+                font-family: Arial, sans-serif;
+                float: left;
+                color: #A66200;
+                background-color: #FFAC40;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                right: 80px;
+
+            }
+
+
+
+
+        main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+
+        main .text{
+            color: #A64A00;
+            flex: 1;
+            padding: 20px;
+            background-color:#FFA940;
+            width: 600px;
+            height: 200px;
+            border: 1px solid #FFA940;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 200px;
+
+
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table a{
+        color: #A66200;
+        }
+
+        table p{
+            text-align: center;
+            color: #A66200;
+        }
+
+
+        table, th, td {
+            border: 1px solid #FFC273;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+        }
+
+
+
+        td img {
+            max-width: 512px;
+            max-height: 512px;
+        }
+
+
+
+        footer {
+            background-color: #BF8530;
+            padding: 10px 20px;
+            text-align: center;
+            border-top: 1px solid #A66200;
+            height: 15px;
+            max-height: 40px;
+
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="index.html">
+    <button class="back-button"> Назад </button>
+    </a>
+
+
+    <div class="logo">
+        <a>Fire control by Andrey Petrov 🔥</a>
+    </div>
+
+</header>
+
+    <main>
+        <div class="text">
+            <h1>Станция в Тунгокоченском районе:</h1>
+            <h2 id="1output">Загрузка...</h2>
+            <p1>станция патрулирует ситуацию каждые 6 часов.</p1>
+            
+
+        </div>
+
+        <table>
+            <tr>
+
+                <td>
+
+                    <img src="town1.jpg" alt="Станция 1">
+                    <p>Забайкальский край, Тунгокоченский район, село Тунгокочен</p>
+                    
+
+                </td>
+
+            </tr>
+
+    </table>
+    </main>
+</div>
+
+<footer>
+    Контакты: +7(985)-712-37-33
+</footer>
+
+<script>
+    const url = 'http://androprojects.ru/output.txt'
+    const output = document.getElementById('1output')
+
+    
+    fetch(url)
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
+        return response.text()
+    })
+    .then(data => {
+        let last_res = data.split('\n').slice(-2)[0]
+        console.log(last_res)
+        output.innerHTML = last_res
+    })
+    .catch(error => {
+
+        console.error(error)
+        output.innerHTML = 'ошибка получения данных'
+    });
+
+</script>
+
+</body>
+</html>
