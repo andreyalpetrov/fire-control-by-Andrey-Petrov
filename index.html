@@ -64,13 +64,10 @@
             padding: 20px;
             background-color:#FFA940;
             width: 550px;
-            height: 320px;
             border: 1px solid #FFA940;
             border-radius: 20px;
 
-
         }
-
 
         table {
             width: 100%;
@@ -116,7 +113,7 @@
 <header>
     <div class="logo">
         <a>Fire control by Andrey Petrov 🔥</a>
-        
+
     </div>
 
 </header>
@@ -128,7 +125,7 @@
             <a>Всем привет! Это школьный проект, расчитаный на дальнейшее расширение.</a>
             <em>(при использовании сайта с телефона лучше использовать горизонтальную версию)</em>
             <h1>Данные о пожарной ситуации в настоящее время:</h1>
-            <h2 id="output">Загрузка...</h2>
+            <h2 id="output">Огонь не обнаружен</h2>
             <a> </a>
             <em>Ниже представлены сами станции, мониторящие возгорание в настоящее время:</em>
 
@@ -143,7 +140,7 @@
                     <a href="server_tungo.html">
                         <img src="town1.jpg" alt="Станция 1">
                         <p>Забайкальский край, Тунгокоченский район, село Тунгокочен</p>
-                        
+
                     </a>
                 </td>
 
@@ -152,45 +149,12 @@
 
     </table>
 
-    </main>
-</div>
+</main>
+
 
 <footer>
     Контакты: +7(985)-712-37-33
 </footer>
 
-<script>
-    
-    const url = 'http://androprojects.ru/output_index.txt'
-    const output = document.getElementById('output')
-    fetch(url)
-    .then(response => { 
-
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-        return response.text() 
-    })
-    .then(data => {
-
-        let last_res = data.split('\n').slice(-2)[0]
-        console.log(last_res)
-
-        output.innerHTML = last_res
-    })
-
-    .catch(error => {
-        
-        console.error(error)
-
-        output.innerHTML = 'ошибка получения данных'
-    })
-</script>
-
 </body>
 </html>
-
-
-
-
-
-
