@@ -3,18 +3,10 @@ from clover import srv
 from std_srvs.srv import Trigger
 import math
 from apscheduler.schedulers.blocking import BlockingScheduler
-
-
-def wait_arrival(tolerance=0.2):
-        while not rospy.is_shutdown():
-            telem = get_telemetry(frame_id='navigate_target')
-            if math.sqrt(telem.x ** 2 + telem.y ** 2 + telem.z ** 2) < tolerance:
-                break
-            rospy.sleep(0.2)
+from datetime import datetime
+rospy.init_node('flight')
 
 def func_flight():
-    rospy.init_node('flight')
-
     get_telemetry = rospy.ServiceProxy('get_telemetry', srv.GetTelemetry)
     navigate = rospy.ServiceProxy('navigate', srv.Navigate)
     navigate_global = rospy.ServiceProxy('navigate_global', srv.NavigateGlobal)
@@ -23,6 +15,13 @@ def func_flight():
     set_attitude = rospy.ServiceProxy('set_attitude', srv.SetAttitude)
     set_rates = rospy.ServiceProxy('set_rates', srv.SetRates)
     land = rospy.ServiceProxy('land', Trigger)
+
+    def wait_arrival(tolerance=0.2):
+        while not rospy.is_shutdown():
+            telem = get_telemetry(frame_id='navigate_target')
+            if math.sqrt(telem.x ** 2 + telem.y ** 2 + telem.z ** 2) < tolerance:
+                break
+            rospy.sleep(0.2)
 
 
     start = get_telemetry(frame_id='map')
@@ -72,6 +71,6 @@ def func_flight():
 
 
 scheduler = BlockingScheduler()
-scheduler.add_job(func_flight, 'interval', hours=2)
+scheduler.add_job(func_flight, 'interval', hours=2, start_date=datetime.now())
 
 scheduler.start()
