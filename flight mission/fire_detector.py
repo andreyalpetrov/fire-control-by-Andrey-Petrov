@@ -43,5 +43,96 @@ class FireAlertNode:
 
     def temp_meas_callback(self, msg):
         """Колбэк для обработки сообщений температуры"""
-        self.current_max_temp = msg.data
+        self.current_max_temp = msg.temperature
         rospy.loginfo(f"Макс. температура: {self.current_max_temp:.1f}°C")
+        
+        # Проверка на пожар
+        if self.current_max_temp > self.max_temp_threshold and \
+           self.latest_temp_image is not None and \
+           not self.alert_sent:
+            self.send_alert()
+            self.alert_sent = True
+
+    def temp_image_callback(self, msg):
+        """Колбэк для получения изображения с тепловизора"""
+        try:
+            self.latest_temp_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            rospy.logdebug("Получено изображение с тепловизора")
+        except CvBridgeError as e:
+            rospy.logerr(f"Ошибка cv_bridge (тепловизор): {e}")
+
+    def cam_image_callback(self, msg):
+        """Колбэк для получения изображения с обычной камеры"""
+        try:
+            self.latest_cam_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            rospy.logdebug("Получено изображение с фронтальной камеры")
+        except CvBridgeError as e:
+            rospy.logerr(f"Ошибка cv_bridge (камера): {e}")
+            
+    def send_alert(self):
+        """Отправка алерта на веб-сервер с изображениями"""
+        if self.latest_temp_image is None:
+            rospy.logwarn("Нет изображения тепловизора для отправки")
+            return
+        
+        rospy.loginfo("Отправка алерта о пожаре...")
+        
+        # Сохраняем изображения временно
+        with tempfile.TemporaryDirectory() as tmpdir:
+            photo_temp_path = os.path.join(tmpdir, 'photo_thermal.png')
+            photo_cam_path = os.path.join(tmpdir, 'photo_camera.png')
+            
+            cv2.imwrite(photo_temp_path, self.latest_temp_image)
+            if self.latest_cam_image is not None:
+                cv2.imwrite(photo_cam_path, self.latest_cam_image)
+            
+            # Правильная подготовка файлов для отправки
+            try:
+                with open(photo_temp_path, 'rb') as f_temp:
+                    files_to_send = [
+                        ('images', ('thermal.png', f_temp, 'image/png'))
+                    ]
+                    
+                    # Если есть изображение с камеры, добавляем его
+                    if self.latest_cam_image is not None:
+                        with open(photo_cam_path, 'rb') as f_cam:
+                            files_to_send.append(
+                                ('images', ('camera.png', f_cam, 'image/png'))
+                            )
+                            
+                            data = {
+                                'fire_detected': 'true',
+                                'comment': f'Обнаружен огонь (темп. {self.current_max_temp:.1f}°C)'
+                            }
+                            
+                            response = requests.post(
+                                self.alert_url,
+                                files=files_to_send,
+                                data=data,
+                                timeout=10
+                            )
+                    else:
+                        data = {
+                            'fire_detected': 'true',
+                            'comment': f'Обнаружен огонь (темп. {self.current_max_temp:.1f}°C)'
+                        }
+                        
+                        response = requests.post(
+                            self.alert_url,
+                            files=files_to_send,
+                            data=data,
+                            timeout=10
+                        )
+                
+                rospy.loginfo(f"Alert отправлен. Код ответа: {response.status_code}")
+                if response.status_code == 200:
+                    rospy.loginfo("Алерт успешно доставлен на сервер!")
+            except Exception as e:
+                rospy.logerr(f"Ошибка отправки алерта: {e}")
+
+
+if __name__ == '__main__':
+    try:
+        node = FireAlertNode()  # ГЛАВНОЕ: создаём объект и запускаем его
+    except rospy.ROSInterruptException:
+        rospy.loginfo("Нода завершена пользователем (Ctrl+C)")
