@@ -18,7 +18,7 @@ class FireAlertNode:
         self.temp_meas_topic = '/termocam_temp'      # Топик температуры
         self.temp_image_topic = '/termocam_image'    # Тепловизор
         self.cam_image_topic = '/main_camera/image_raw'  # Нижняя камера
-        self.alert_url = 'http://androproject:5000/api/alerts'
+        self.alert_url = 'http://androprojects:5000/api/alerts'
 
         self.max_temp_threshold = 100.0
         self.current_max_temp = 0.0
