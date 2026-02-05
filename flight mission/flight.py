@@ -4,6 +4,12 @@ from std_srvs.srv import Trigger
 import math
 from apscheduler.schedulers.blocking import BlockingScheduler
 from datetime import datetime
+import requests
+
+
+URL_open = "http://192.168.1.4/roof_open"
+URL_close = "http://192.168.1.4/roof_close"
+
 rospy.init_node('flight')
 
 def func_flight():
@@ -24,48 +30,57 @@ def func_flight():
             rospy.sleep(0.2)
 
 
+    r = requests.get(URL_open)
+    rospy.sleep(20)
+
     start = get_telemetry(frame_id='map')
-
-    print('Start point global position: lat={}, lon={}'.format(start.lat, start.lon))
-
-    print('Take off 15 meters')
 
     navigate(x=0, y=0, z=1, frame_id='body', auto_arm=True)
     wait_arrival()
-    print('BASIC take off is done')
     rospy.sleep(4)
+
     navigate(frame_id='aruco_55', x=0, y=0, z=5)
     wait_arrival()
-    print('ARUCO aruco_55 is done')
     rospy.sleep(4)
 
+    r = requests.get(URL_close)
 
     telem = get_telemetry(frame_id='map')
-    print('telem.z = ', telem.z)
-    navigate_global(lat=start.lat, lon=start.lon, z=telem.z, speed=5, frame_id='map')
+
+    navigate_global(lat=start.lat, lon=start.lon, z=(telem.z+25), speed=5, frame_id='map')
     wait_arrival()
     rospy.sleep(4)
-    print('GPS take off is done')
 
-
-    print('flying to the upper left side of the square')
-    navigate_global(lat=start.lat+0.000045, lon=start.lon, z=telem.z, speed=5, frame_id='map')
+    navigate_global(lat=start.lat+0.000045, lon=start.lon, z=(telem.z+25), speed=5, frame_id='map')
     wait_arrival()
 
-    print('flying to the upper right side of the square')
-    navigate_global(lat=start.lat+0.000045, lon=start.lon + 0.000045, z=telem.z, speed=5, frame_id='map')
+    navigate_global(lat=start.lat+0.000045, lon=start.lon + 0.000045, z=(telem.z+25), speed=5, frame_id='map')
     wait_arrival()
 
-    print('flying to the lower right side of the square')
-    navigate_global(lat=start.lat, lon=start.lon + 0.000045, z=telem.z,  speed=5, frame_id='map')
+    navigate_global(lat=start.lat, lon=start.lon + 0.000045, z=(telem.z+25),  speed=5, frame_id='map')
     wait_arrival()
 
-    print('flying to the starting position')
+    navigate_global(lat=start.lat, lon=start.lon, z=(telem.z+25), speed=5, frame_id='map')
+    wait_arrival()
+
     navigate_global(lat=start.lat, lon=start.lon, z=telem.z, speed=5, frame_id='map')
     wait_arrival()
 
-    print('Land')
+    r = requests.get(URL_open)
+
+    navigate(frame_id='aruco_55', x=0, y=0, z=5)
+    wait_arrival()
+    rospy.sleep(4)
+    
+    navigate(frame_id='aruco_55', x=0, y=0, z=1)
+    wait_arrival()
+    rospy.sleep(4)
+
     land()
+
+    rospy.sleep(15)
+
+    r = requests.get(URL_close)
 
     pass
 
